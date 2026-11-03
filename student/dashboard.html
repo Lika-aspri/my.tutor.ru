@@ -1,1 +1,142 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои ученики | Панель Учителя</title>
+    <!-- Стили из корневой папки -->
+    <link rel="stylesheet" href="../style.css">
+    
+    <style>
+        /* Стили для строк с учениками */
+        .student-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 30px;
+            border-bottom: 1px solid #E5E7EB;
+            transition: background 0.2s;
+        }
+        .student-item:last-child {
+            border-bottom: none;
+        }
+        .student-item:hover {
+            background-color: #F9FAFB;
+        }
+        
+        /* Информация об ученике */
+        .student-info {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .student-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #111827;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .student-badge {
+            font-size: 12px;
+            background: #E0E7FF;
+            color: #4338CA;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .student-creds {
+            font-size: 14px;
+            color: #6B7280;
+        }
+        .student-creds b {
+            color: #374151;
+            background: #F3F4F6;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
 
+        /* Кнопки */
+        .student-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-delete {
+            background: #FEF2F2;
+            color: #991B1B;
+            border: 1px solid #FECACA;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-delete:hover {
+            background: #FEE2E2;
+        }
+        
+        /* Заглушка, если учеников нет */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6B7280;
+        }
+        .empty-state h3 {
+            color: #111827;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body class="dashboard-body">
+
+    <!-- Боковое меню (Sidebar) -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">MyTutor 👩‍🏫</div>
+        <nav class="sidebar-nav">
+            <!-- Класс active показывает, на какой странице мы находимся -->
+            <a href="dashboard.html" class="active">📊 Мои ученики</a>
+            <a href="assign.html">📚 Выдать задания</a>
+        </nav>
+        <button onclick="logout()" class="btn-logout">Выйти</button>
+    </aside>
+
+    <!-- Основной контент -->
+    <main class="main-content">
+        
+        <!-- Верхняя панель с кнопкой добавления -->
+        <header class="top-header">
+            <h1>Мои ученики</h1>
+            <!-- Ссылка ведет на страницу создания ученика -->
+            <a href="add-student.html" class="btn-primary" style="display: inline-block; text-decoration: none;">
+                + Добавить ученика
+            </a>
+        </header>
+
+        <!-- Карточка со списком учеников -->
+        <div class="card" style="padding: 0; overflow: hidden;">
+            <!-- Сюда скрипт tutor.js будет вставлять строки с учениками -->
+            <div id="studentsList">
+                <div class="empty-state">
+                    <h3>Загрузка данных...</h3>
+                </div>
+            </div>
+        </div>
+        
+    </main>
+
+    <!-- Подключаем базу данных и скрипт управления -->
+    <script src="../auth.js"></script>
+    <script src="tutor.js"></script>
+    
+    <!-- Кнопка выхода (дублируется для надежности) -->
+    <script>
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = '../index.html';
+        }
+    </script>
+</body>
+</html>
