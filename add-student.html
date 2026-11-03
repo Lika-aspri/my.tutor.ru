@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Добавить ученика | MyTutor</title>
+    <!-- Подключаем стили из корневой папки -->
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body class="auth-body">
+
+    <div class="auth-container">
+        <h2>Новый ученик</h2>
+        <p class="auth-subtitle">Создайте аккаунт для вашего ученика</p>
+        
+        <!-- Форма создания -->
+        <form onsubmit="event.preventDefault(); handleAdd();">
+            <div class="form-group">
+                <label>Имя ученика</label>
+                <input type="text" id="newName" placeholder="Например: Марк" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Логин (для входа)</label>
+                <input type="text" id="newLogin" placeholder="mark123" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Пароль</label>
+                <input type="text" id="newPass" placeholder="12345" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Предмет / Уровень</label>
+                <select id="newLang">
+                    <option value="Греческий">Греческий 🇬🇷</option>
+                    <option value="Английский (Starters)">Английский - Starters 🎓</option>
+                    <option value="Английский (Movers)">Английский - Movers 🎓</option>
+                    <option value="Английский (Flyers)">Английский - Flyers 🎓</option>
+                    <option value="Английский (KET)">Английский - KET 🎓</option>
+                    <option value="Английский (PET)">Английский - PET 🎓</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="btn-primary btn-block">Создать аккаунт</button>
+            
+            <p style="text-align: center; margin-top: 20px;">
+                <a href="dashboard.html" style="color: #666; font-size: 14px;">← Назад в кабинет</a>
+            </p>
+        </form>
+    </div>
+
+    <!-- Подключаем базу данных (auth.js) -->
+    <script src="../auth.js"></script>
+    
+    <script>
+        function handleAdd() {
+            // Берем значения из полей формы
+            const name = document.getElementById('newName').value.trim();
+            const login = document.getElementById('newLogin').value.trim();
+            const pass = document.getElementById('newPass').value.trim();
+            const lang = document.getElementById('newLang').value;
+
+            // Вызываем функцию createStudent() из auth.js
+            const result = createStudent(name, login, pass, lang);
+
+            if (result.success) {
+                // Если ученик создан, возвращаемся в кабинет
+                window.location.href = 'dashboard.html';
+            } else {
+                // Если логин занят, показываем ошибку
+                alert(result.message);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выдача заданий | MyTutor</title>
+    <link rel="stylesheet" href="../style.css">
+    
+    <style>
+        /* Стили для этой страницы */
+        .assign-header {
+            background: white; padding: 20px 30px; border-radius: 16px;
+            border: 1px solid #E5E7EB; display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .assign-header select {
+            padding: 12px 16px; border-radius: 8px; border: 2px solid #D1D5DB;
+            font-size: 16px; min-width: 300px; outline: none; background: #F9FAFB;
+        }
+        .assign-header select:focus { border-color: var(--primary); background: white; }
+
+        .lesson-block {
+            background: white; border: 1px solid #E5E7EB; border-radius: 12px;
+            margin-bottom: 20px; overflow: hidden;
+        }
+        .lesson-title {
+            background: #F3F4F6; padding: 15px 20px; font-weight: 700;
+            color: #374151; border-bottom: 1px solid #E5E7EB; font-size: 16px;
+        }
+        
+        .task-item {
+            display: flex; align-items: flex-start; gap: 15px;
+            padding: 15px 20px; border-bottom: 1px solid #F3F4F6;
+            cursor: pointer; transition: background 0.2s;
+        }
+        .task-item:last-child { border-bottom: none; }
+        .task-item:hover { background: #F9FAFB; }
+        .task-item input[type="checkbox"] {
+            width: 22px; height: 22px; margin-top: 2px;
+            cursor: pointer; accent-color: var(--primary);
+        }
+        
+        .task-content { display: flex; flex-direction: column; gap: 5px; flex: 1; }
+        .task-badge {
+            font-size: 11px; background: #E5E7EB; color: #4B5563;
+            padding: 3px 8px; border-radius: 6px; font-weight: 700;
+            width: fit-content; text-transform: uppercase;
+        }
+        .task-desc { font-size: 15px; color: #111827; line-height: 1.4; }
+        
+        /* Панель сохранения внизу */
+        .save-bar {
+            position: fixed; bottom: 0; left: 280px; right: 0;
+            background: #111827; color: white; padding: 20px 40px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.1); z-index: 100;
+        }
+        .save-bar button {
+            background: var(--primary); color: white; border: none;
+            padding: 12px 30px; border-radius: 8px; font-weight: 700;
+            cursor: pointer; font-size: 16px; transition: 0.2s;
+        }
+        .save-bar button:hover { background: var(--primary-hover); }
+        
+        .empty-message {
+            text-align: center; padding: 60px; color: #6B7280;
+            background: white; border-radius: 12px; border: 1px dashed #D1D5DB;
+        }
+        
+        .main-content { padding-bottom: 120px; } /* Чтобы панель не перекрывала контент */
+    </style>
+</head>
+<body class="dashboard-body">
+
+    <!-- Боковое меню (как в dashboard.html) -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">MyTutor 👩‍🏫</div>
+        <nav class="sidebar-nav">
+            <a href="dashboard.html">📊 Мои ученики</a>
+            <a href="assign.html" class="active">📚 Выдать задания</a>
+        </nav>
+        <button onclick="logout()" class="btn-logout">Выйти</button>
+    </aside>
+
+    <!-- Основной контент -->
+    <main class="main-content">
+        <div class="assign-header">
+            <div>
+                <h1 style="margin-bottom: 5px; font-size: 26px;">Выдача заданий</h1>
+                <p style="color: #666; margin: 0; font-size: 15px;">Выберите ученика и отметьте нужные карточки из базы.</p>
+            </div>
+            <select id="studentSelect" onchange="loadTasksForStudent()">
+                <option value="">-- Выберите ученика --</option>
+            </select>
+        </div>
+
+        <div id="tasksContainer">
+            <div class="empty-message">
+                <h2>Выберите ученика</h2>
+                <p>Справа появится список всех доступных карточек из вашей базы.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Панель сохранения (появляется при выборе ученика) -->
+    <div class="save-bar" id="saveBar" style="display: none;">
+        <div style="font-size: 18px;">Выбрано заданий: <b id="selectedCount" style="color: #10B981; font-size: 24px;">0</b></div>
+        <button onclick="saveAssignedTasks()">Выдать выбранные задания</button>
+    </div>
+
+    <!-- Подключаем скрипты -->
+    <script src="../auth.js"></script>
+    <script src="../tasks/tasks-data.js"></script>
+    
+    <script>
+        let currentStudentLogin = null;
+
+        // При загрузке страницы проверяем вход и заполняем список учеников
+        window.onload = function() {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            if (!user || user.role !== 'tutor') {
+                window.location.href = '../index.html';
+                return;
+            }
+
+            // Добавляем учеников в выпадающий список
+            const students = getStudents();
+            const select = document.getElementById('studentSelect');
+            students.forEach(s => {
+                select.innerHTML += `<option value="${s.login}">${s.name} (${s.subject})</option>`;
+            });
+        };
+
+        // Загрузка карточек для выбранного ученика
+        function loadTasksForStudent() {
+            const login = document.getElementById('studentSelect').value;
+            const container = document.getElementById('tasksContainer');
+            const saveBar = document.getElementById('saveBar');
+
+            if (!login) {
+                container.innerHTML = '<div class="empty-message"><h2>Выберите ученика</h2><p>Справа появится список всех доступных карточек.</p></div>';
+                saveBar.style.display = 'none';
+                return;
+            }
+
+            currentStudentLogin = login;
+            const alreadyAssigned = getAssignedTasks(login);
+            saveBar.style.display = 'flex';
+
+            // Берем ВСЮ базу заданий
+            const allTasks = tasksDatabase;
+
+            // Группируем по темам (lesson)
+            const grouped = {};
+            allTasks.forEach(t => {
+                const lessonName = t.lesson || "Разное";
+                if (!grouped[lessonName]) grouped[lessonName] = [];
+                grouped[lessonName].push(t);
+            });
+
+            container.innerHTML = '';
+
+            // Отрисовываем блоки
+            for (const [lessonName, tasks] of Object.entries(grouped)) {
+                const block = document.createElement('div');
+                block.className = 'lesson-block';
+                block.innerHTML = `<div class="lesson-title">📚 ${lessonName}</div>`;
+
+                tasks.forEach(task => {
+                    // Если карточка уже выдана, ставим галочку
+                    const isChecked = alreadyAssigned.includes(task.id) ? 'checked' : '';
+                    const text = task.question || task.title || 'Теория';
+                    
+                    block.innerHTML += `
+                        <label class="task-item">
+                            <input type="checkbox" class="task-cb" value="${task.id}" ${isChecked} onchange="updateCount()">
+                            <div class="task-content">
+                                <span class="task-badge">${task.subject} | ${task.type}</span>
+                                <span class="task-desc">${text}</span>
+                            </div>
+                        </label>
+                    `;
+                });
+                container.appendChild(block);
+            }
+            updateCount();
+        }
+
+        // Обновление счетчика галочек
+        function updateCount() {
+            const count = document.querySelectorAll('.task-cb:checked').length;
+            document.getElementById('selectedCount').innerText = count;
+        }
+
+        // Сохранение заданий
+        function saveAssignedTasks() {
+            if (!currentStudentLogin) return;
+
+            const checkboxes = document.querySelectorAll('.task-cb:checked');
+            const selectedIds = Array.from(checkboxes).map(cb => Number(cb.value));
+
+            // Вызываем функцию из auth.js
+            assignTasksToStudent(currentStudentLogin, selectedIds);
+            
+            alert('Задания успешно выданы ученику!');
+        }
+
+        // Выход
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = '../index.html';
+        }
+    </script>
+</body>
+</html>

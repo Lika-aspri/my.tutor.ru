@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход в систему | MyTutor</title>
+    
+    <!-- Подключаем общий файл стилей (он лежит в этой же папке) -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="auth-body">
+
+    <!-- Белая карточка по центру экрана -->
+    <div class="auth-container">
+        
+        <!-- Логотип и заголовок -->
+        <div class="auth-logo">MyTutor 🚀</div>
+        <h2>Вход в систему</h2>
+        <p class="auth-subtitle">Введите ваши данные, чтобы продолжить</p>
+
+        <!-- Форма входа -->
+        <form onsubmit="event.preventDefault(); login();">
+            <div class="form-group">
+                <label>Логин</label>
+                <input type="text" id="loginUser" placeholder="Введите логин" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Пароль</label>
+                <input type="password" id="loginPass" placeholder="Введите пароль" required>
+            </div>
+
+            <button type="submit" class="btn-primary btn-block">Войти</button>
+        </form>
+
+        <!-- Подсказка для вас (потом можно убрать) -->
+        <div class="auth-footer">
+            <p>Вход для учителя: <b>admin</b> / <b>admin</b></p>
+        </div>
+    </div>
+
+    <!-- Подключаем скрипт базы данных (он лежит в этой же папке) -->
+    <script src="auth.js"></script>
+    
+    <script>
+        // Функция, которая срабатывает при нажатии кнопки "Войти"
+        function login() {
+            // Берем то, что ввели в поля
+            const loginVal = document.getElementById('loginUser').value.trim();
+            const passVal = document.getElementById('loginPass').value.trim();
+            
+            // Вызываем функцию authenticate() из файла auth.js
+            const user = authenticate(loginVal, passVal);
+
+            if (user) {
+                // Если пользователь найден, сохраняем его данные в память браузера
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                
+                // Перенаправляем в нужный кабинет
+                if (user.role === 'tutor') {
+                    window.location.href = 'tutor/dashboard.html';
+                } else if (user.role === 'student') {
+                    window.location.href = 'student/dashboard.html';
+                }
+            } else {
+                // Если логин/пароль не подошли
+                alert('Неверный логин или пароль!');
+            }
+        }
+    </script>
+</body>
+</html>
